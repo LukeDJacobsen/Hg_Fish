@@ -1,0 +1,87 @@
+---
+title: "Calculating 90th Percentile in Fish Samples"
+author: "Luke Jacobsen"
+date: "2/20/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include = F}
+library(tidyverse)
+library(nlme)
+library(readr)
+fish_clean <- read_csv("Documents/Hg_Fish/fish_clean.csv")
+```
+
+##Introduction
+
+As stated in Minnesota Pollution Control Agency's *Guidance Manual
+for Assessing the Quality of Minnesota Surface Waters* (2008), \"A waterbody is defined as impaired if more than 10% of the fish in a species are greater than 0.2 ppm, which is equivalent to saying the water is impaired if the 90th percentile for any fish species is >0.2 ppm.\" This report analyzes if it is more effective to model the 90th percentile instead of simply using an order statistics to estimate the 90th percentile. 
+
+##Exploratory Data Analysis
+
+The plots below show that HG ppm is clearly not normally distributed, however log of hgppm is closer to normally distributed. 
+```{r echo = F}
+ggplot(fish_clean) + geom_histogram(aes(HGPPM))
+ggplot(fish_clean) + geom_histogram(aes(LN_HGPPM))
+```
+To analyze this further we can look at the normalqq plot of the logged Hg ppm values. 
+```{r}
+ggplot(fish_clean, aes(sample = LN_HGPPM)) + stat_qq() + stat_qq_line()
+```
+There's clearly a violation on the lower tail. It is not reasonable to assume that the logged values of Hg ppm are normally distributed. Let's see if the logged Hg ppm for any of the species is normal. 
+```{r}
+ggplot(fish_clean, aes(sample = LN_HGPPM)) + stat_qq() + stat_qq_line() +
+  facet_grid(~Fish_Group)
+```
+Still doesn't look great. 
+
+How about if we break down to ecoregion? 
+```{r}
+ggplot(fish_clean, aes(sample = LN_HGPPM)) + stat_qq() + stat_qq_line() +
+  facet_grid(~EcoRegionIII)
+```
+Still doesn't help. 
+
+
+##Some Basic Models
+
+Mixed effects model with length and fish group as fixed effects and year as a random effect.
+```{r}
+mm1 <- lme(LN_HGPPM ~ LGTHIN + Fish_Group, data = fish_clean, na.action = na.omit, random = ~1|Year)
+qqnorm(mm1)
+plot(mm1)
+```
+qqplot not great, but better than just looking at the distribution of logged Hg PPM. 
+
+
+Model 2: Mixed effects model with length and fish group as fixed effect and waterbody random effect.
+```{r}
+mm2 <- lme(LN_HGPPM ~ LGTHIN + Fish_Group, data = fish_clean, na.action = na.omit ,random = ~1|DOWID)
+
+qqnorm(mm2)
+```
+Errors are not normal. Shouldn't use this model for anything.
+
+
+Mixed effects model with length, fish group, and eco region as fixed effects and random intercepts by year. 
+```{r}
+mm3 <- lme(LN_HGPPM ~ LGTHIN + Fish_Group + EcoRegionIII, data = fish_clean, na.action = na.omit, 
+              random = ~1|Year)
+summary(mm3)
+qqnorm(mm3)
+```
+May be a useful model. From this we could calculate a 90th percentile for fish samples in the entire state of Minnesota given length, fish group, and ecoregion. (But maybe that's not so helpful). 
+
+
+```{r}
+mm4 <- lme(LN_HGPPM ~ LGTHIN + Fish_Group, data = fish_clean, 
+           na.action = na.omit, random = ~1|EcoRegionIII)
+plot(mm4)
+qqnorm(mm4)
+```
+
+Question: Can we use these models to make any interence on the 90th percentile? 

@@ -6,12 +6,12 @@ library(lubridate)
 library(tidyquant)
 library(ranger)
 library(readxl)
-##################################################################
+###############################################################################
 
 ################################################################################
 #Import data 
 ################################################################################
-fish_clean <- read_excel("Documents/Hg_fish/Hg_Fish_Project_Git/raw_hg_fish.xlsx")
+fish_clean <- read_excel("Desktop/raw_hg_fish.xlsx")
 ################################################################################
 
 
@@ -73,5 +73,9 @@ fish_clean$CwetlandA <- as.numeric(fish_clean$CwetlandA)
 fish_clean$WconiferA <- as.numeric(fish_clean$WconiferA)
 fish_clean$CconiferA <- as.numeric(fish_clean$CconiferA)
 fish_clean$Lake_Class <- as.factor(fish_clean$Lake_Class)
-?save
-save(fish_clean, file = "~/Documents/Hg_fish/fish_clean.csv")
+
+#Add year variable
+
+fish_clean <- fish_clean %>% mutate(Year = year(DATE))
+
+write.csv(fish_clean, file = "~/Documents/Hg_fish/fish_clean.csv")
