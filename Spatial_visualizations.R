@@ -12,4 +12,5 @@ ggmap(mapmn) +
   geom_point(data = lake_level_eff, aes(x = Longitude, y =Latitude, color = Random_Lake_Effect, alpha = .5), size = 1) +
    guides(fill=FALSE, alpha=FALSE, size=FALSE) +scale_colour_gradient2(low = "white", high = "black", midpoint = -1.7)
 
+2+2
 
