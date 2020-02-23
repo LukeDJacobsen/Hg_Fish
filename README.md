@@ -1,2 +1,2 @@
 # Hg_Fish
-These files contain background materials and code for an analysis done on Mercury in fish samples throughout Minnesota. (IN PROGRESS!)
+These files contain background materials and code for an analysis done on Mercury in fish samples throughout Minnesota. 
